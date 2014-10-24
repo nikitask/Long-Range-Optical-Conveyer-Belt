@@ -40,7 +40,7 @@
 ;         straightforward.
 ;
 ; EXAMPLE:
-;         rho = makerho()
+;         rho = makerho()             
 ;
 ; MODIFICATION HISTORY:
 ; 10/8/2004 David G. Grier, New York Universty, created.
