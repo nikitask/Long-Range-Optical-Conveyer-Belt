@@ -27,7 +27,7 @@ def nolensbesseltrap(r, ell = 0, eta = 1, alpha = 0, shape = 0, blend = 0):
 
     amp = abs(b)
 
-    return [[amp], [phi]]
+    return amp, phi
     
 amp, phi = nolensbesseltrap(3)
 print(amp, phi)
