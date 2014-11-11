@@ -1,4 +1,4 @@
-#Nikitas Kanellakopoulos
+#Written by Nikitas Kanellakopoulos, 11/11/2014
 #doe_add2.py 
 #Purpose: Combine two phase gratings into one.
 
