@@ -5,7 +5,7 @@
 import numpy as np
 import scipy as sp
 import random
-def doe_add2(phi1, phi2, nomod = 0, amp1 =[], amp2=[], eta = 0, ampout= 0): #does ampout need to be there?
+def doe_add(phi1, phi2, nomod = 0, amp1 =[], amp2=[], eta = 0, ampout= 0): #does ampout need to be there?
 	if len(amp1) > 0 or len(amp2) > 0:
 		tempshape = phi1.shape
 		w = tempshape[1]
