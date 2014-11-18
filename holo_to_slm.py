@@ -8,11 +8,6 @@ This program then creates a window onto a secondary display and displays the
  widget on that window.
 Finally, this program also creates a menu on the original display that shows the projected image and a "quit" button.
 
-INPUT: an image to main(), which is converted to a qimage and sent to both displays.
-
-WARNING: Make sure to click "quit" on the mini-display that shows up on the primary monitor. If only "x" is clicked, 
-the python program will run in terminal indefinitely and terminal must be restarted.
-
 authors: Nikitas Kanellakopoulos  and David Ruffner
 
 References: zetcode.com
@@ -43,10 +38,10 @@ class SLMcontrol(QtGui.QWidget):
         qbtn = QtGui.QPushButton('Quit', self)
         qbtn.clicked.connect(QtCore.QCoreApplication.instance().quit)
         qbtn.resize(qbtn.sizeHint())
-        qbtn.move(300,20) 
+        qbtn.move(500,20) 
         
         self.btn = QtGui.QPushButton('Set Hologram',self)
-        self.btn.move(300,70)
+        self.btn.move(500,70)
         self.btn.clicked.connect(self.showDialog)
 
         self.lbl = QtGui.QLabel(self)
@@ -57,7 +52,7 @@ class SLMcontrol(QtGui.QWidget):
         pixmap = pixmap.scaledToHeight(200)
         pic.setPixmap(pixmap)
     
-        self.setGeometry(300, 400, 450, 200)
+        self.setGeometry(300, 400, 650, 200)
         self.setWindowTitle('SLMcontrol') 
         self.center() 
       
@@ -85,7 +80,7 @@ def main(image='heart.png'): #default image set to locally stored file
 
     if image == 'heart.png': #converting any non-default array into an image
         converted_image = image
-        else converted_image = q2.gray2qimage(image, normalize =  True)
+    else: converted_image = q2.gray2qimage(image, normalize =  True)
   
     pic = QtGui.QLabel(w) #Picture to be projected on SLM
     pic.setGeometry(0,0,1920,1080)
@@ -93,7 +88,7 @@ def main(image='heart.png'): #default image set to locally stored file
     img = img.scaled(1920, 1080)
     pic.setPixmap(img)
   
-    ex = SLMcontrol(converted_image)
+    ex = SLMcontrol(img)
     
     w.show()
     ex.show()
