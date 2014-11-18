@@ -3,15 +3,15 @@
 
 
 
-import holo_to_slm,superpose2,doe_add2,nolensbesseltrap,displace1
+import holo_to_slm,superpose2,doe_add2,besselbeam,displace
 import qimage2ndarray as q2
 
-amp1, phi1 = nolensbesseltrap.nolensbesseltrap(30)
-amp2, phi2 = nolensbesseltrap.nolensbesseltrap(20)
+amp1, phi1 = besselbeam.besselbeam(30)
+amp2, phi2 = besselbeam.besselbeam(20)
 print(amp1.shape, amp2.shape, phi1.shape, phi2.shape)
-phi, ampout = superpose2.superpose2(phi1, phi2, amp1 = amp1, amp2 = amp2)
-phi3 = displace1.displace(140,10)
+phi, ampout = superpose.superpose(phi1, phi2, amp1 = amp1, amp2 = amp2)
+phi3 = displace.displace(140,10)
 #displace with w = 1080, h = 1920 returns phi.shape(1920,1080)
 print("THIS IS PHI", phi.shape, phi3.shape)
-phiout = doe_add2.doe_add2(phi,phi3, amp1 = ampout)#removed amp2
+phiout = doe_add.doe_add(phi,phi3, amp1 = ampout)#removed amp2
 holo_to_slm.main(phiout)
