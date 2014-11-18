@@ -3,7 +3,7 @@
 
 
 
-import holo_to_slm,superpose2,doe_add2,besselbeam,displace
+import holo_to_slm,superpose,doe_add,besselbeam,displace
 import qimage2ndarray as q2
 
 amp1, phi1 = besselbeam.besselbeam(30)
