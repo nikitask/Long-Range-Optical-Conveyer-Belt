@@ -8,6 +8,11 @@ This program then creates a window onto a secondary display and displays the
  widget on that window.
 Finally, this program also creates a menu on the original display that shows the projected image and a "quit" button.
 
+INPUT: an image to main(), which is converted to a qimage and sent to both displays.
+
+WARNING: Make sure to click "quit" on the mini-display that shows up on the primary monitor. If only "x" is clicked, 
+the python program will run in terminal indefinitely and terminal must be restarted.
+
 authors: Nikitas Kanellakopoulos  and David Ruffner
 
 References: zetcode.com
