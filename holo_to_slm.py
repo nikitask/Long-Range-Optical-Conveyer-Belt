@@ -21,7 +21,6 @@ image and project it onto the window created.
 
 import sys
 from PyQt4 import QtGui, QtCore
-import array_to_image #.array_gen() and .img_gen(array) included
 import Image
 import imghdr
 import qimage2ndarray as q2 #used to conver array to image
