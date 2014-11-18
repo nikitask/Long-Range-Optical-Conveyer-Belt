@@ -4,7 +4,7 @@ import scipy as sp
 import holo_common as common
 import makerho 
 
-def nolensbesseltrap(r, ell = 0, eta = 1, alpha = 0, shape = 0, blend = 0): 
+def besselbeam(r, ell = 0, eta = 1, alpha = 0, shape = 0, blend = 0): 
     #correct inital parameters???
     
     c = common.Calibrations()
