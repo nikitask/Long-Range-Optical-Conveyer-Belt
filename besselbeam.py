@@ -14,8 +14,7 @@ def besselbeam(r, ell = 0, eta = 1, alpha = 0, shape = 0, blend = 0):
     twopi = 2 * np.pi 
 
     q = r * (twopi * c.mppslm * c.mppccd)  / (c.lamba * c.fobj)
-    print("Focal length" , c.fobj)
-    print("factor" , (twopi * c.mppslm * c.mppccd) / (c.lamba * c.fobj))
+   
     b = ss.jn(0,q * rho)    # IMPORTANT: now the scale is determined by the 
                           # calibration. The "factor" relats the slm pixels
                           # to the ccd pixels.
