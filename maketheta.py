@@ -36,5 +36,4 @@ def maketheta(x = 0, y = 0, dim = [], cal = [], nocal = []):
     x, y, = np.meshgrid(x1d, y1d)
     theta = np.arctan2(y, x)
 
-    print theta    
     return theta
