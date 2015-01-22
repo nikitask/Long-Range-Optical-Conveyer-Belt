@@ -19,6 +19,7 @@ Modification History:
 image and project it onto the window created.
 2014_12_04: Edited by Nikitas Kanellakopoulos, NYU. Added the ability to type "phaseshift" and run 100 phaseshifts of the optical conveyor beam
 2014_12_09: Edited by Nikitas Kanellakopoulos, NYU. Added opencv capabilities to "phaseshift," allowing it to take pictures of each phaseshift
+2015_1_21: Edited by Nikitas Kanellakopoulos, NYU. Added the ability to display a static conveyor beam in the drop down menu.
 
 """
 
@@ -89,22 +90,24 @@ class MyWindow(QtGui.QWidget):
 			cv.ShowImage("camera",img)
 			cv.SaveImage('phaseshift'+str(u) + '.jpg',img)#saves camera capture with corresponding phase shift
     def changeImage(self, pathToImage): #Allows user to cycle through various beam setups
-        pixmap = QtGui.QPixmap(pathToImage)
+	print('pathtoimage',pathToImage)
+	if pathToImage.endswith('.npy'): #converting any non-default array into an image
+        	image = np.load('conveyorarray.npy')
+    		print(image)
+    		converted_image = q2.gray2qimage(image, normalize =  True)
+        else: converted_image = pathToImage
+        pixmap = QtGui.QPixmap(converted_image)
 	pixmap = pixmap.scaledToHeight(300)
-	SLM(pathToImage)
+	SLM(converted_image)
         self.label.setPixmap(pixmap)
 
 def SLM(image='heart.png'): #default image set to locally stored file
     w = QtGui.QWidget(QtGui.QApplication.desktop().screen(1)) #projects window onto secondary display
     w.setGeometry(0,0,1920,1080)
-    print(image)
-    if image == 'heart.png': #converting any non-default array into an image
-        converted_image = image
-    else: converted_image = q2.gray2qimage(image, normalize =  True)
-  
+    print('hey',image)
     pic = QtGui.QLabel(w) #Picture to be projected on SLM
     pic.setGeometry(0,0,1920,1080)
-    img = QtGui.QPixmap(converted_image)
+    img = QtGui.QPixmap(image)
     img = img.scaled(1920, 1080)
     pic.setPixmap(img)
     w.show()
@@ -116,9 +119,7 @@ capture = cv.CaptureFromCAM(0)
 if __name__ == "__main__":
     import sys
 
-    images = [  "heart.png",
-                "star.png",
-                ]
+    images = [  "heart.png","star.png","conveyorarray.npy"]
 
     app = QtGui.QApplication(sys.argv)
     app.setApplicationName('MyWindow')
