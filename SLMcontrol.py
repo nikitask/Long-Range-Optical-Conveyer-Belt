@@ -28,11 +28,12 @@ sip.setapi('QString', 2)
 sip.setapi('QVariant', 2)
 
 from PyQt4 import QtGui, QtCore
-import projectconveyer
+#import projectconveyer
 import numpy as np
 import qimage2ndarray as q2
 import time
 import cv2.cv as cv #opencv for taking pictures in camera
+import projectconveyor
 
 class ImageChanger(QtGui.QWidget):    
     def __init__(self, images, parent=None):
@@ -79,7 +80,7 @@ class MyWindow(QtGui.QWidget):
             self.lbl.setText(text)
 	    if text == "phaseshift":
 		for u in range(100):
-			phiout = projectconveyer.projectconveyer(u*(2.*np.pi/100.)) #calls projectconveyer to create the optical conveyor array
+			phiout = projectconveyor.projectconveyor(u*(2.*np.pi/100.)) #calls projectconveyer to create the optical conveyor array
 			img = SLM(phiout) #sends the array to SLM() which projects the array onto the SLM
 			pixmap = QtGui.QPixmap(img)
 			pixmap = pixmap.scaledToHeight(300)
@@ -92,9 +93,8 @@ class MyWindow(QtGui.QWidget):
     def changeImage(self, pathToImage): #Allows user to cycle through various beam setups
 	print('pathtoimage',pathToImage)
 	if pathToImage.endswith('.npy'): #converting any non-default array into an image
-        	image = np.load('conveyorarray.npy')
-    		print(image)
-    		converted_image = q2.gray2qimage(image, normalize =  True)
+        	phiout = projectconveyor.projectconveyor()
+    		converted_image = q2.gray2qimage(phiout, normalize =  True)
         else: converted_image = pathToImage
         pixmap = QtGui.QPixmap(converted_image)
 	pixmap = pixmap.scaledToHeight(300)
@@ -103,12 +103,12 @@ class MyWindow(QtGui.QWidget):
 
 def SLM(image='heart.png'): #default image set to locally stored file
     w = QtGui.QWidget(QtGui.QApplication.desktop().screen(1)) #projects window onto secondary display
-    w.setGeometry(0,0,1920,1080)
+    w.setGeometry(0,0,1024,768)
     print('hey',image)
     pic = QtGui.QLabel(w) #Picture to be projected on SLM
-    pic.setGeometry(0,0,1920,1080)
+    pic.setGeometry(0,0,1024,768)
     img = QtGui.QPixmap(image)
-    img = img.scaled(1920, 1080)
+    img = img.scaled(1024,768)
     pic.setPixmap(img)
     w.show()
     return img
