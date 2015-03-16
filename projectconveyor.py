@@ -6,7 +6,7 @@
 import holo_to_slm,superpose,doe_add,besselbeam,displace
 import qimage2ndarray as q2
 
-def projectconveyer(phase = 0):
+def projectconveyor(phase = 0):
   amp1, phi1 = besselbeam.besselbeam(30)
   amp2, phi2 = besselbeam.besselbeam(20)
   print(amp1.shape, amp2.shape, phi1.shape, phi2.shape)
