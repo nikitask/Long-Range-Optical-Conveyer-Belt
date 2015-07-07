@@ -30,7 +30,6 @@ def scanner(text):
 			x += [u]
 			
 	x = ''.join(x)
-	hologram += [x]
 	for v in newtext:
 		if v == ')':
 			index = newtext.index(v)
@@ -39,7 +38,9 @@ def scanner(text):
 		else:
 			y += [v]
 	y = ''.join(y)
-	hologram += [y]
+	pair =[]
+	pair = [x,y]
+	hologram += [pair]
 	for w in newtext:
 		if w == '+':
 			newtext.remove(w)
@@ -50,7 +51,3 @@ def scanner(text):
 			break
 	
 	return hologram
-
-
-test = scanner('lens(1.5)+planewave(10)+dispatch(10)')
-print(test)
