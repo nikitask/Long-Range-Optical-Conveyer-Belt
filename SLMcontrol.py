@@ -34,7 +34,14 @@ import qimage2ndarray as q2
 import time
 import cv2.cv as cv #opencv for taking pictures in camera
 import projectconveyor
+import planewave
+import lens
+import os
+import re
+import vortex
+import scanner
 
+		
 class ImageChanger(QtGui.QWidget):    
     def __init__(self, images, parent=None):
         super(ImageChanger, self).__init__(parent)        
@@ -69,18 +76,23 @@ class MyWindow(QtGui.QWidget):
 	self.btn = QtGui.QPushButton('Set Hologram',self)
         self.btn.move(500,70)
         self.btn.clicked.connect(self.showDialog)
+
         
         self.layout = QtGui.QVBoxLayout(self)
         self.layout.addWidget(self.label)
 
     def showDialog(self):
         text, ok = QtGui.QInputDialog.getText(self, 'Input Dialog',
-                                              'Enter Hologram:')
-        if ok:
+                                              'Enter Hologram:hologram(#)+hologram(#)')
+	       
+	if ok:
             self.lbl.setText(text)
+	    self.lbl.move(450,100)
+	    self.lbl.adjustSize() 
+
 	    if text == "phaseshift":
 		for u in range(100):
-			phiout = projectconveyor.projectconveyor(u*(2.*np.pi/100.)) #calls projectconveyer to create the optical conveyor array
+			phiout = projectconveyor.construct(u*(2.*np.pi/100.)) #calls projectconveyer to create the optical conveyor array
 			img = SLM(phiout) #sends the array to SLM() which projects the array onto the SLM
 			pixmap = QtGui.QPixmap(img)
 			pixmap = pixmap.scaledToHeight(300)
@@ -90,10 +102,40 @@ class MyWindow(QtGui.QWidget):
 			img = cv.QueryFrame(capture) #begins camera capture
 			cv.ShowImage("camera",img)
 			cv.SaveImage('phaseshift'+str(u) + '.jpg',img)#saves camera capture with corresponding phase shift
+	    else: 
+		text = text.encode('ascii','ignore')	#converts from unicode to ascii	
+		hologram = scanner.scanner(text)#splits up the input into the individual holograms with their paramaters
+		phiout = np.zeros((768,1024))
+		for indiv in hologram:				
+			for file in os.listdir("/home/nikitas/Desktop/TractorMaster"):#searches main folder
+				if indiv[0] in file:
+					if file.endswith('.py'):
+						a = __import__(indiv[0])#imports the corresponding function
+						if indiv[1] == '':
+							subphiout = a.construct()#default
+						else: 
+							subphiout = a.construct(float(indiv[1]))#generates the array
+						phiout += subphiout #adds the arrays
+		phiout = phiout % 256 #rescaling, not sure why it doesn't mess up when only one array is inputted
+		converted_image = q2.gray2qimage(phiout, normalize =  True)
+		pixmap = QtGui.QPixmap(converted_image)
+		pixmap = pixmap.scaledToHeight(300)
+		SLM(converted_image)
+       		self.label.setPixmap(pixmap)
+					 
+     
     def changeImage(self, pathToImage): #Allows user to cycle through various beam setups
-	print('pathtoimage',pathToImage)
-	if pathToImage.endswith('.npy'): #converting any non-default array into an image
-        	phiout = projectconveyor.projectconveyor()
+	if pathToImage.endswith('planewave.npy'): #converting any non-default array into an image
+        	phiout = planewave.construct()
+    		converted_image = q2.gray2qimage(phiout, normalize =  True)
+	elif pathToImage.endswith('lens.npy'): #converting any non-default array into an image
+        	phiout = lens.construct()
+    		converted_image = q2.gray2qimage(phiout, normalize =  True)
+	elif pathToImage.endswith('conveyorarray.npy'): #converting any non-default array into an image
+        	phiout = projectconveyor.construct()
+    		converted_image = q2.gray2qimage(phiout, normalize =  True)
+	elif pathToImage.endswith('vortex.npy'): #converting any non-default array into an image
+        	phiout = vortex.construct()
     		converted_image = q2.gray2qimage(phiout, normalize =  True)
         else: converted_image = pathToImage
         pixmap = QtGui.QPixmap(converted_image)
@@ -104,7 +146,6 @@ class MyWindow(QtGui.QWidget):
 def SLM(image='heart.png'): #default image set to locally stored file
     w = QtGui.QWidget(QtGui.QApplication.desktop().screen(1)) #projects window onto secondary display
     w.setGeometry(0,0,1024,768)
-    print('hey',image)
     pic = QtGui.QLabel(w) #Picture to be projected on SLM
     pic.setGeometry(0,0,1024,768)
     img = QtGui.QPixmap(image)
@@ -119,7 +160,7 @@ capture = cv.CaptureFromCAM(0)
 if __name__ == "__main__":
     import sys
 
-    images = [  "heart.png","star.png","conveyorarray.npy"]
+    images = [  "heart.png","star.png","conveyorarray.npy","planewave.npy", "lens.npy", "vortex.npy"]
 
     app = QtGui.QApplication(sys.argv)
     app.setApplicationName('MyWindow')
