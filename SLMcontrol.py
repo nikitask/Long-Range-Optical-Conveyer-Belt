@@ -32,7 +32,8 @@ from PyQt4 import QtGui, QtCore
 import numpy as np
 import qimage2ndarray as q2
 import time
-import cv2.cv as cv #opencv for taking pictures in camera
+#import cv2.cv as cv #opencv for taking pictures in camera
+import cv2 as cv
 import projectconveyor
 import planewave
 import lens
@@ -62,7 +63,7 @@ class MyWindow(QtGui.QWidget):
         self.imageChanger.show()
         self.imageChanger.comboBox.currentIndexChanged[str].connect(self.changeImage)
 
-	self.setGeometry(300, 400, 850, 400)
+	self.setGeometry(300, 400, 850, 400)#x1,y1,x2,y2
         self.setWindowTitle('SLMcontrol') 
 
 	qbtn = QtGui.QPushButton('Quit', self)
@@ -70,8 +71,8 @@ class MyWindow(QtGui.QWidget):
         qbtn.resize(qbtn.sizeHint())
         qbtn.move(500,20) 
 	
-        self.lbl = QtGui.QLabel(self)
-        self.lbl.move(300,100)
+        self.lbl = QtGui.QLabel(self) #sets label for input text
+        
 	
 	self.btn = QtGui.QPushButton('Set Hologram',self)
         self.btn.move(500,70)
@@ -87,7 +88,7 @@ class MyWindow(QtGui.QWidget):
 	       
 	if ok:
             self.lbl.setText(text)
-	    self.lbl.move(450,100)
+	    self.lbl.move(500,125)
 	    self.lbl.adjustSize() 
 
 	    if text == "phaseshift":
@@ -99,9 +100,31 @@ class MyWindow(QtGui.QWidget):
  			self.label.setPixmap(pixmap)#sends the array to the smaller window on the main screen
 			print(u*(2.*np.pi/100.))
 			QtGui.QApplication.processEvents() #pauses the program to let the image buffer onto the SLM and window
-			img = cv.QueryFrame(capture) #begins camera capture
-			cv.ShowImage("camera",img)
-			cv.SaveImage('phaseshift'+str(u) + '.jpg',img)#saves camera capture with corresponding phase shift
+			  
+            elif text == "cameratest":
+		cv.NamedWindow("camera",1) #starts up opencv
+		capture = cv.CaptureFromCAM(1)
+		QtGui.QApplication.processEvents()
+		img = cv.QueryFrame(capture)
+		cv.ShowImage("camera",img)
+		cv.SaveImage("cameratest.jpg",img)
+	    elif text == "video":
+		cap= cv.VideoCapture(1)
+		fourcc = cv.cv.CV_FOURCC(*'XVID')
+		out = cv.VideoWriter('output.avi',fourcc,50.0,(640,480)) #fps and resolution
+		while (cap.isOpened()):
+			 ret, frame = cap.read()
+			 if ret==True:
+				frame = cv.flip(frame,0)
+				out.write(frame)
+				cv.imshow('frame',frame)
+				if cv.waitKey(1) & 0xFF == ord('q'):
+					break
+			 else:
+				break	
+		cap.release()
+		out.release()
+		cv.destroyAllWindows()
 	    else: 
 		text = text.encode('ascii','ignore')	#converts from unicode to ascii	
 		hologram = scanner.scanner(text)#splits up the input into the individual holograms with their paramaters
@@ -116,7 +139,7 @@ class MyWindow(QtGui.QWidget):
 						else: 
 							subphiout = a.construct(float(indiv[1]))#generates the array
 						phiout += subphiout #adds the arrays
-		phiout = phiout % 256 #rescaling, not sure why it doesn't mess up when only one array is inputted
+		phiout = phiout % 256 #rescaling
 		converted_image = q2.gray2qimage(phiout, normalize =  True)
 		pixmap = QtGui.QPixmap(converted_image)
 		pixmap = pixmap.scaledToHeight(300)
@@ -143,19 +166,18 @@ class MyWindow(QtGui.QWidget):
 	SLM(converted_image)
         self.label.setPixmap(pixmap)
 
-def SLM(image='heart.png'): #default image set to locally stored file
+
+
+def SLM(array='heart.png'): #default image set to locally stored file
     w = QtGui.QWidget(QtGui.QApplication.desktop().screen(1)) #projects window onto secondary display
-    w.setGeometry(0,0,1024,768)
+    w.setGeometry(0,0,1024,768) #geometry dependent on SLM
     pic = QtGui.QLabel(w) #Picture to be projected on SLM
     pic.setGeometry(0,0,1024,768)
-    img = QtGui.QPixmap(image)
+    img = QtGui.QPixmap(array) #convert image to format that can be projected
     img = img.scaled(1024,768)
     pic.setPixmap(img)
     w.show()
     return img
-
-cv.NamedWindow("camera",1) #starts up opencv
-capture = cv.CaptureFromCAM(0)
 
 if __name__ == "__main__":
     import sys
