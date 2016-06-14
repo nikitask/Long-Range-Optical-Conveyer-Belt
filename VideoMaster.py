@@ -18,37 +18,37 @@ import os
 
 
 
-def VideotoArray(path):
-    video = cv.VideoCapture(path)
+def VideotoArray(path): 
+    video = cv.VideoCapture(path) #openCV is used to capture video
     success,image = video.read()
     count = 0
     while success: #comment if frames are already saved
         success,image = video.read()
         cv.imwrite('pic%d.png'% count,image)
-        source = '/Users/nikit/Desktop/Tractormaster/pic%d.png'% count
+        source = '/Users/nikit/Desktop/Tractormaster/pic%d.png'% count #saves a frame as an image
         print(source)
-        os.rename('/Users/nikit/Desktop/Tractormaster/pic%d.png'% count,'/Users/nikit/Desktop/Tractormaster/Video2/pic%d.png'%count)
+        os.rename('/Users/nikit/Desktop/Tractormaster/pic%d.png'% count,'/Users/nikit/Desktop/Tractormaster/Video2/pic%d.png'%count)#changes save location. NEED TO UPDATE THIS WITH EVERY VIDEO
         if cv.waitKey(10)== 27:
             break
         count += 1 
-    frames = pims.ImageSequence('/Users/nikit/Desktop/Tractormaster/Video2/pic*.png' ,as_grey=True)    
+    frames = pims.ImageSequence('/Users/nikit/Desktop/Tractormaster/Video2/pic*.png' ,as_grey=True)  #creates an array of frames  
     return frames
 
 def ImagetoArray(path):
-    frames = pims.ImageSequence('/Users/nikit/Desktop/Tractormaster/Video1/pic*.png' ,as_grey=True) 
+    frames = pims.ImageSequence('/Users/nikit/Desktop/Tractormaster/Video1/pic*.png' ,as_grey=True) #reads in array
     crop_frame = []
     c = len(frames)
-    for n in range(c-1):
+    for n in range(c-1): #crops to only observe selected area
         frame_img = frames[n]
         width, height = frame_img.shape[:2]
         crop_frame += [frame_img[150:400]]
     return crop_frame
     
 
-def Pathcalc(videoarray,start=535,end=540):
-    h = h5py.File('myvideofile.hdf4','a')
+def Pathcalc(videoarray,start=535,end=540): #takes in array of images and does path calculations on them
+    h = h5py.File('myvideofile.hdf4','a') #creates file
     print(videoarray)
-    f = tp.batch(videoarray[start:end],17,minmass=400)
+    f = tp.batch(videoarray[start:end],17,minmass=400) #selects certain range of frames with parameters
     t = tp.link_df(f,5,memory=3)
     t.head()
     t1 = tp.filter_stubs(t,3)
@@ -57,7 +57,7 @@ def Pathcalc(videoarray,start=535,end=540):
     tp.mass_size(t1.groupby('particle').mean())
     #tp.plots(frames[0])
     plt.figure()
-    tp.plot_traj(t1) 
+    tp.plot_traj(t1)  #plots trajectory
     plt.show()
     return t1
     
@@ -85,7 +85,7 @@ def SaveDataset(datasetname,filetitle):
     np.savetxt(str(filetitle),datasetname)
     
     
-path = '/Users/nikit/Desktop/Tractormaster/test2.avi'
+path = '/Users/nikit/Desktop/Tractormaster/test2.avi' #defines video you want to analyze, use 2 below lines if this is needed
 #frames = VideotoArray(path)
 #crop = ImagetoArray(path)
 #print(crop)
