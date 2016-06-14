@@ -43,7 +43,7 @@ import vortex
 import scanner
 
 		
-class ImageChanger(QtGui.QWidget):    
+class ImageChanger(QtGui.QWidget):    #creates a widget for a drop down menu 
     def __init__(self, images, parent=None):
         super(ImageChanger, self).__init__(parent)        
 
@@ -53,32 +53,29 @@ class ImageChanger(QtGui.QWidget):
         self.layout = QtGui.QVBoxLayout(self)
         self.layout.addWidget(self.comboBox)
 
-class MyWindow(QtGui.QWidget):
+class MyWindow(QtGui.QWidget): #creates the window to be populated with widgets
     def __init__(self, images, parent=None):
         super(MyWindow, self).__init__(parent)
         self.label = QtGui.QLabel(self)
 
-        self.imageChanger = ImageChanger(images)
+        self.imageChanger = ImageChanger(images) #inserts the drop down menu
         self.imageChanger.move(self.imageChanger.pos().y(), self.imageChanger.pos().x() + 100)
         self.imageChanger.show()
         self.imageChanger.comboBox.currentIndexChanged[str].connect(self.changeImage)
 
-	self.setGeometry(300, 400, 850, 400)#x1,y1,x2,y2
+        self.setGeometry(300, 400, 850, 400)#x1,y1,x2,y2
         self.setWindowTitle('SLMcontrol') 
 
-	qbtn = QtGui.QPushButton('Quit', self)
+        qbtn = QtGui.QPushButton('Quit', self) #inserts "quit" button
         qbtn.clicked.connect(QtCore.QCoreApplication.instance().quit)
         qbtn.resize(qbtn.sizeHint())
         qbtn.move(500,20) 
 	
         self.lbl = QtGui.QLabel(self) #sets label for input text
-        
-	
-	self.btn = QtGui.QPushButton('Set Hologram',self)
+        self.btn = QtGui.QPushButton('Set Hologram',self)
         self.btn.move(500,70)
         self.btn.clicked.connect(self.showDialog)
-
-        
+    
         self.layout = QtGui.QVBoxLayout(self)
         self.layout.addWidget(self.label)
 
@@ -86,84 +83,85 @@ class MyWindow(QtGui.QWidget):
         text, ok = QtGui.QInputDialog.getText(self, 'Input Dialog',
                                               'Enter Hologram:hologram(#)+hologram(#)')
 	       
-	if ok:
+        if ok: #lists input on the right
             self.lbl.setText(text)
-	    self.lbl.move(500,125)
-	    self.lbl.adjustSize() 
+            self.lbl.move(500,125)
+            self.lbl.adjustSize() 
 
-	    if text == "phaseshift":
-		for u in range(100):
-			phiout = projectconveyor.construct(u*(2.*np.pi/100.)) #calls projectconveyer to create the optical conveyor array
-			img = SLM(phiout) #sends the array to SLM() which projects the array onto the SLM
-			pixmap = QtGui.QPixmap(img)
-			pixmap = pixmap.scaledToHeight(300)
- 			self.label.setPixmap(pixmap)#sends the array to the smaller window on the main screen
-			print(u*(2.*np.pi/100.))
-			QtGui.QApplication.processEvents() #pauses the program to let the image buffer onto the SLM and window
+        if text == "phaseshift":
+            for u in range(100):
+                phiout = projectconveyor.construct(u*(2.*np.pi/100.)) #calls projectconveyer to create the optical conveyor array
+                img = SLM(phiout) #sends the array to SLM() which projects the array onto the SLM
+                pixmap = QtGui.QPixmap(img)
+                pixmap = pixmap.scaledToHeight(300)
+                self.label.setPixmap(pixmap)#sends the array to the smaller window on the main screen
+                print(u*(2.*np.pi/100.))
+                QtGui.QApplication.processEvents() #pauses the program to let the image buffer onto the SLM and window
 			  
-            elif text == "cameratest":
-		cv.NamedWindow("camera",1) #starts up opencv
-		capture = cv.CaptureFromCAM(1)
-		QtGui.QApplication.processEvents()
-		img = cv.QueryFrame(capture)
-		cv.ShowImage("camera",img)
-		cv.SaveImage("cameratest.jpg",img)
-	    elif text == "video":
-		cap= cv.VideoCapture(1)
-		fourcc = cv.cv.CV_FOURCC(*'XVID')
-		out = cv.VideoWriter('output.avi',fourcc,50.0,(640,480)) #fps and resolution
-		while (cap.isOpened()):
-			 ret, frame = cap.read()
-			 if ret==True:
-				frame = cv.flip(frame,0)
-				out.write(frame)
-				cv.imshow('frame',frame)
-				if cv.waitKey(1) & 0xFF == ord('q'):
-					break
-			 else:
-				break	
-		cap.release()
-		out.release()
-		cv.destroyAllWindows()
-	    else: 
-		text = text.encode('ascii','ignore')	#converts from unicode to ascii	
-		hologram = scanner.scanner(text)#splits up the input into the individual holograms with their paramaters
-		phiout = np.zeros((768,1024))
-		for indiv in hologram:				
-			for file in os.listdir("/home/nikitas/Desktop/TractorMaster"):#searches main folder
-				if indiv[0] in file:
-					if file.endswith('.py'):
-						a = __import__(indiv[0])#imports the corresponding function
-						if indiv[1] == '':
-							subphiout = a.construct()#default
-						else: 
-							subphiout = a.construct(float(indiv[1]))#generates the array
-						phiout += subphiout #adds the arrays
-		phiout = phiout % 256 #rescaling
-		converted_image = q2.gray2qimage(phiout, normalize =  True)
-		pixmap = QtGui.QPixmap(converted_image)
-		pixmap = pixmap.scaledToHeight(300)
-		SLM(converted_image)
-       		self.label.setPixmap(pixmap)
+        elif text == "cameratest":
+             cv.NamedWindow("camera",1) #starts up opencv
+             capture = cv.CaptureFromCAM(1)
+             QtGui.QApplication.processEvents()
+             img = cv.QueryFrame(capture)
+             cv.ShowImage("camera",img)
+             cv.SaveImage("cameratest.jpg",img)
+        elif text == "video": #captures video
+             cap= cv.VideoCapture(1)
+             fourcc = cv.cv.CV_FOURCC(*'XVID')
+             out = cv.VideoWriter('output.avi',fourcc,50.0,(640,480)) #fps and resolution
+             while (cap.isOpened()):
+                 ret, frame = cap.read()
+                 if ret==True:
+                     frame = cv.flip(frame,0)
+                     out.write(frame)
+                     cv.imshow('frame',frame)
+                     if cv.waitKey(1) & 0xFF == ord('q'):
+                         break
+                 else:
+                     break	
+             cap.release()
+             out.release()
+             cv.destroyAllWindows()
+        else: #attempts to construct array
+            text = text.encode('ascii','ignore')	#converts from unicode to ascii	
+            text = text.decode('ascii')
+            hologram = scanner.scanner(text)#splits up the input into the individual holograms with their paramaters
+            phiout = np.zeros((768,1024))
+            for indiv in hologram:				
+                for file in os.listdir("/users/nikit/Desktop/TractorMaster"):#searches main folder
+                    if indiv[0] in file:
+                        if file.endswith('.py'):
+                            a = __import__(indiv[0])#imports the corresponding function
+                            if indiv[1] == '':
+                                subphiout = a.construct()#default
+                            else: 
+                                subphiout = a.construct(float(indiv[1]))#generates the array
+                            phiout += subphiout #adds the arrays
+        phiout = phiout % 256 #rescaling
+        converted_image = q2.gray2qimage(phiout, normalize =  True)
+        pixmap = QtGui.QPixmap(converted_image)
+        pixmap = pixmap.scaledToHeight(300)
+        SLM(converted_image)
+        self.label.setPixmap(pixmap)
 					 
      
     def changeImage(self, pathToImage): #Allows user to cycle through various beam setups
-	if pathToImage.endswith('planewave.npy'): #converting any non-default array into an image
-        	phiout = planewave.construct()
-    		converted_image = q2.gray2qimage(phiout, normalize =  True)
-	elif pathToImage.endswith('lens.npy'): #converting any non-default array into an image
-        	phiout = lens.construct()
-    		converted_image = q2.gray2qimage(phiout, normalize =  True)
-	elif pathToImage.endswith('conveyorarray.npy'): #converting any non-default array into an image
-        	phiout = projectconveyor.construct()
-    		converted_image = q2.gray2qimage(phiout, normalize =  True)
-	elif pathToImage.endswith('vortex.npy'): #converting any non-default array into an image
-        	phiout = vortex.construct()
-    		converted_image = q2.gray2qimage(phiout, normalize =  True)
+        if pathToImage.endswith('planewave.npy'): #converting any non-default array into an image
+                phiout = planewave.construct()
+                converted_image = q2.gray2qimage(phiout, normalize =  True)
+        elif pathToImage.endswith('lens.npy'): #converting any non-default array into an image
+                phiout = lens.construct()
+                converted_image = q2.gray2qimage(phiout, normalize =  True)
+        elif pathToImage.endswith('conveyorarray.npy'): #converting any non-default array into an image
+                phiout = projectconveyor.construct()
+                converted_image = q2.gray2qimage(phiout, normalize =  True)
+        elif pathToImage.endswith('vortex.npy'): #converting any non-default array into an image
+                phiout = vortex.construct()
+                converted_image = q2.gray2qimage(phiout, normalize =  True)
         else: converted_image = pathToImage
         pixmap = QtGui.QPixmap(converted_image)
-	pixmap = pixmap.scaledToHeight(300)
-	SLM(converted_image)
+        pixmap = pixmap.scaledToHeight(300)
+        SLM(converted_image)
         self.label.setPixmap(pixmap)
 
 
