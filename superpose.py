@@ -2,7 +2,7 @@ import scipy as sp
 import random
 import numpy as np
 
-def superpose(phi1, phi2, alpha=1, amp1 = [], amp2 = [], ampout = []):
+def construct(phi1, phi2, alpha=1, amp1 = [], amp2 = [], ampout = []):
     phi1 = np.array(phi1)
     phi2 = np.array(phi2)
     tempshape = phi1.shape
