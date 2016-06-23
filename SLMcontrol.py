@@ -7,6 +7,9 @@ This program then creates a window onto a secondary display and displays the
  widget on that window.
 There is a "set hologram" button that takes text input and acts on it. Inputting "phaseshift"
 will project an optical conveyor beam at phase shifts (2pi/100)*u, u running from 1-100. After it projects one beam, opencv takes a pictuer and saves it with the corresponding phaseshift, then the program projects the next beam, and so on.
+**There is also the option to add and input arrays. Currently supported arrays are: bessel, vortex, plane, and lens. Any amount can be added, and the parameter is listed within each file. 
+Adding occurs like this in the input screen: lens(2)+vortex(5)
+
 Finally, this program also creates a menu on the original display that shows the projected image and a "quit" button.
 
 authors: Nikitas Kanellakopoulos  and David Ruffner
