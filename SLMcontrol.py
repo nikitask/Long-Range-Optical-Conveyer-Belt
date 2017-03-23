@@ -6,10 +6,7 @@ This program takes in an array, converts it into an image, and projects it onto 
 This program then creates a window onto a secondary display and displays the
  widget on that window.
 There is a "set hologram" button that takes text input and acts on it. Inputting "phaseshift"
-will project an optical conveyor beam at phase shifts (2pi/100)*u, u running from 1-100. After it projects one beam, opencv takes a pictuer and saves it with the corresponding phaseshift, then the program projects the next beam, and so on.
-**There is also the option to add and input arrays. Currently supported arrays are: bessel, vortex, plane, and lens. Any amount can be added, and the parameter is listed within each file. 
-Adding occurs like this in the input screen: lens(2)+vortex(5)
-
+will project an optical conveyor beam at phase shifts (2pi/100)*u, u running from 1-100. After it projects one beam, opencv takes a picture and saves it with the corresponding phaseshift, then the program projects the next beam, and so on.
 Finally, this program also creates a menu on the original display that shows the projected image and a "quit" button.
 
 authors: Nikitas Kanellakopoulos  and David Ruffner
@@ -44,7 +41,11 @@ import os
 import re
 import vortex
 import scanner
+import holo_common as common
+import rayleighsommerfeld
+import besselbeam
 
+c = common.Calibrations() #import standard calibrations for SLM - specifically to create the correct size arrays 
 		
 class ImageChanger(QtGui.QWidget):    #creates a widget for a drop down menu 
     def __init__(self, images, parent=None):
@@ -70,7 +71,7 @@ class MyWindow(QtGui.QWidget): #creates the window to be populated with widgets
         self.setWindowTitle('SLMcontrol') 
 
         qbtn = QtGui.QPushButton('Quit', self) #inserts "quit" button
-        qbtn.clicked.connect(QtCore.QCoreApplication.instance().quit)
+        qbtn.clicked.connect(QtCore.QCoreApplication.instance().quit) # FIXME: Implement a TRY and Finally statement
         qbtn.resize(qbtn.sizeHint())
         qbtn.move(500,20) 
 	
@@ -109,8 +110,9 @@ class MyWindow(QtGui.QWidget): #creates the window to be populated with widgets
              cv.ShowImage("camera",img)
              cv.SaveImage("cameratest.jpg",img)
         elif text == "video": #captures video
-             cap= cv.VideoCapture(1)
+             cap= cv.VideoCapture(0)
              fourcc = cv.cv.CV_FOURCC(*'XVID')
+ 	     #fourcc = cv.VideoWriter_fourcc(*'XVID')
              out = cv.VideoWriter('output.avi',fourcc,50.0,(640,480)) #fps and resolution
              while (cap.isOpened()):
                  ret, frame = cap.read()
@@ -123,29 +125,31 @@ class MyWindow(QtGui.QWidget): #creates the window to be populated with widgets
                  else:
                      break	
              cap.release()
-             out.release()
+             #out.release()
              cv.destroyAllWindows()
         else: #attempts to construct array
             text = text.encode('ascii','ignore')	#converts from unicode to ascii	
             text = text.decode('ascii')
             hologram = scanner.scanner(text)#splits up the input into the individual holograms with their paramaters
-            phiout = np.zeros((768,1024))
+	    print(hologram)
+            phiout = np.zeros((c.slm_h, c.slm_w))
             for indiv in hologram:				
-                for file in os.listdir("/users/nikit/Desktop/TractorMaster"):#searches main folder
+                for file in os.listdir("/home/nikitas/Desktop/TractorMaster"):#searches main folder
                     if indiv[0] in file:
                         if file.endswith('.py'):
                             a = __import__(indiv[0])#imports the corresponding function
                             if indiv[1] == '':
                                 subphiout = a.construct()#default
-                            else: 
-                                subphiout = a.construct(float(indiv[1]))#generates the array
+                            else:
+					
+                                subphiout = a.construct(*indiv[1])#generates the array
                             phiout += subphiout #adds the arrays
-        phiout = phiout % 256 #rescaling
-        converted_image = q2.gray2qimage(phiout, normalize =  True)
-        pixmap = QtGui.QPixmap(converted_image)
-        pixmap = pixmap.scaledToHeight(300)
-        SLM(converted_image)
-        self.label.setPixmap(pixmap)
+            phiout = phiout % 256 #rescaling
+            converted_image = q2.gray2qimage(phiout, normalize =  True)
+            pixmap = QtGui.QPixmap(converted_image)
+            pixmap = pixmap.scaledToHeight(300)
+            SLM(converted_image)
+            self.label.setPixmap(pixmap)
 					 
      
     def changeImage(self, pathToImage): #Allows user to cycle through various beam setups
@@ -155,9 +159,35 @@ class MyWindow(QtGui.QWidget): #creates the window to be populated with widgets
         elif pathToImage.endswith('lens.npy'): #converting any non-default array into an image
                 phiout = lens.construct()
                 converted_image = q2.gray2qimage(phiout, normalize =  True)
+        elif pathToImage.endswith('besselbeam.npy'):
+            amp, phiout = besselbeam.construct(10)
+            converted_image = q2.gray2qimage(phiout, normalize = True)
         elif pathToImage.endswith('conveyorarray.npy'): #converting any non-default array into an image
-                phiout = projectconveyor.construct()
-                converted_image = q2.gray2qimage(phiout, normalize =  True)
+		x = np.linspace(0,2*np.pi,20)
+		for i in range(0,10):
+			for u in x:
+            			phiout = projectconveyor.construct(u)
+                		# testing rayleighsommerfeld 11/9
+            			phiout = rayleighsommerfeld.rayleighsommerfeld(phiout, -10.)
+            			#phiout *= np.conjugate(phiout)      #take real part from RS??
+            			converted_image = q2.gray2qimage(phiout, normalize =  True)
+				pixmap = QtGui.QPixmap(converted_image)
+       				pixmap = pixmap.scaledToHeight(300)
+        			SLM(converted_image)
+   				self.label.setPixmap(pixmap)
+				QtGui.QApplication.processEvents() #pauses the program to let the image buffer onto the SLM and window
+	elif pathToImage.endswith('besselplane.npy'):
+		amp,phiout = besselbeam.construct(1)
+                # testing rayleighsommerfeld 11/9
+            	phiout = rayleighsommerfeld.rayleighsommerfeld(phiout, +50)
+            	#phiout *= np.conjugate(phiout)      #take real part from RS??
+            	converted_image = q2.gray2qimage(phiout, normalize =  True)
+		pixmap = QtGui.QPixmap(converted_image)
+       		pixmap = pixmap.scaledToHeight(300)
+        	SLM(converted_image)
+   		self.label.setPixmap(pixmap)
+		QtGui.QApplication.processEvents()
+			
         elif pathToImage.endswith('vortex.npy'): #converting any non-default array into an image
                 phiout = vortex.construct()
                 converted_image = q2.gray2qimage(phiout, normalize =  True)
@@ -171,11 +201,11 @@ class MyWindow(QtGui.QWidget): #creates the window to be populated with widgets
 
 def SLM(array='heart.png'): #default image set to locally stored file
     w = QtGui.QWidget(QtGui.QApplication.desktop().screen(1)) #projects window onto secondary display
-    w.setGeometry(0,0,1024,768) #geometry dependent on SLM
+    w.setGeometry(0,0,c.slm_w,c.slm_h) #geometry dependent on SLM
     pic = QtGui.QLabel(w) #Picture to be projected on SLM
-    pic.setGeometry(0,0,1024,768)
+    pic.setGeometry(0,0,c.slm_w,c.slm_h)
     img = QtGui.QPixmap(array) #convert image to format that can be projected
-    img = img.scaled(1024,768)
+    img = img.scaled(c.slm_w,c.slm_h)
     pic.setPixmap(img)
     w.show()
     return img
@@ -183,7 +213,7 @@ def SLM(array='heart.png'): #default image set to locally stored file
 if __name__ == "__main__":
     import sys
 
-    images = [  "heart.png","star.png","conveyorarray.npy","planewave.npy", "lens.npy", "vortex.npy"]
+    images = [  "heart.png","star.png","besselbeam.npy", "conveyorarray.npy","planewave.npy", "lens.npy", "vortex.npy","besselplane.npy"]
 
     app = QtGui.QApplication(sys.argv)
     app.setApplicationName('MyWindow')
